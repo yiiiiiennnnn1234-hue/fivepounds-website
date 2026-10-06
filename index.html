@@ -360,16 +360,23 @@
       // 1. WhatsApp 手机号码
       const WHATSAPP_NUMBER = "601110859232"; 
 
-      // 2. 解析商品列表
+      // 2. 解析商品列表（支持读取 DESSERT 和 SIZE 字段）
       let itemsListText = "";
       if (Array.isArray(data.items)) {
         data.items.forEach(item => {
           if (typeof item === 'string') {
             itemsListText += `- ${item}\n`;
           } else {
-            const itemName = item.name || item.title || item.productName || item.label || item.item || 'Item';
+            // 抓取蛋糕名称（优先匹配 dessert / cake / name 等字段）
+            const itemName = item.dessert || item.dessertName || item.cake || item.name || item.title || item.productName || item.label || item.item || 'Dessert';
+            
+            // 抓取尺寸（如果选了尺寸，例如 6 inch）
+            const itemSize = item.size ? ` (${item.size})` : '';
+            
+            // 抓取数量
             const itemQty = item.quantity || item.qty || item.count || 1;
-            itemsListText += `- ${itemName} x ${itemQty}\n`;
+
+            itemsListText += `- ${itemName}${itemSize} x ${itemQty}\n`;
           }
         });
       }
@@ -392,7 +399,8 @@
       }
 
       if (data.candle) message += `*Candle*: Yes\n`;
-      if (data.birthdayCakeTopper || data.birthdayCard) message += `*Birthday Cake Topper*: Yes\n`;      if (data.notes) message += `*Notes*: ${data.notes}\n`;
+      if (data.birthdayCakeTopper += `*Birthday Cake Topper*: Yes\n`;      
+      if (data.notes) message += `*Notes*: ${data.notes}\n`;
 
       message += `\n请帮我确认订单，谢谢！\nPlease help confirm my order, thank you!`;
 
