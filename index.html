@@ -351,15 +351,46 @@
 
     form.addEventListener("submit",e=>{
       e.preventDefault();showMessage("");successPanel.classList.remove("show");
-      if(!configured){showMessage("Connect the Google Apps Script Web App URL in index.html before accepting live orders.","error");return}
       if(!form.reportValidity())return;
       let data;try{data=buildFormData()}catch(err){showMessage(err.message,"error");return}
       if(data.method==="Self Collection"&&!data.collectionPoint){showMessage("Please choose a collection point.","error");return}
       if(data.method==="Grab Express"&&!data.address){showMessage("Please enter your delivery address.","error");return}
       const honeypot=form.querySelector('input[name="website"]');if(honeypot&&honeypot.value){showMessage("Something went wrong. Please try again.","error");return}
-      orderJson.value=JSON.stringify({name:data.name,phone:data.phone,date:data.date,time:data.time,method:data.method,collectionPoint:data.collectionPoint,address:data.address,notes:data.notes,candle:data.candle,birthdayCard:data.birthdayCard,items:data.items,source:"fivepounds_website"});
-      lastOrderData=data;submitBtn.disabled=true;submitBtn.textContent="Saving your order…";showMessage("Saving your order…");
-      form.action=GOOGLE_SCRIPT_URL;form.submit();
+
+      // 1. 替换为你的 WhatsApp 电话号码（请带上国家代码，如马来西亚 60123456789，不要加 + 号）
+      const WHATSAPP_NUMBER = "601110859232"; 
+
+      // 2. 格式化商品列表文本
+      let itemsListText = "";
+      if (Array.isArray(data.items)) {
+        data.items.forEach(item => {
+          itemsListText += `• ${item.name || item.title || '商品'} x ${item.quantity || item.qty || 1}\n`;
+        });
+      }
+
+      // 3. 拼接要发送给你的 WhatsApp 文本消息
+      let message = `✨ *【新订单】来自官网* ✨\n\n`;
+      message += `👤 *姓名*：${data.name}\n`;
+      message += `📞 *电话*：${data.phone}\n`;
+      message += `📅 *日期/时间*：${data.date} (${data.time})\n`;
+      message += `🚚 *配送方式*：${data.method}\n`;
+      if (data.method === "Self Collection") {
+        message += `📍 *取货地点*：${data.collectionPoint}\n`;
+      } else {
+        message += `📍 *送货地址*：${data.address}\n`;
+      }
+      if (itemsListText) {
+        message += `\n🍰 *订购商品*：\n${itemsListText}`;
+      }
+      if (data.candle) message += `🕯️ *蜡烛*：${data.candle}\n`;
+      if (data.birthdayCard) message += `🎂 *贺卡*：${data.birthdayCard}\n`;
+      if (data.notes) message += `📝 *备注*：${data.notes}\n`;
+
+      message += `\n请帮我确认订单，谢谢！`;
+
+      // 4. 打开 WhatsApp 跳转链接
+      const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
+      window.open(whatsappUrl, '_blank');
     });
 
     window.addEventListener("message",event=>{
